@@ -9,7 +9,7 @@ class Board
 
     def initialize(level)
         difficulties = { 
-            "test" => [3,3, 2],
+            "test" => [4,4, 2],
             "beginner" => [9, 9, 10], 
             "intermediate" => [16, 16, 10],
             "expert" => [16, 30, 99] 
@@ -41,29 +41,24 @@ class Board
     end
 
     def seed_mines
-        coords = []
-        #(0...mine_count).each do |i|
+        placed_positions = []
         mines_placed = 0
+
         until @mine_count == mines_placed
             h = rand(height)
             w = rand(width)
 
-            if coords.include?([h, w])
+            if placed_positions.include?([h, w])
                 next
             else 
                 @grid[h][w].set_mine!
-                coords << [h, w] 
+                placed_positions << [h, w] 
                 mines_placed += 1
             end
         end
-        p coords
+        p placed_positions
         "mines set!"
     end
 
 end
 
-if  __FILE__ == $PROGRAM_NAME
-     b = Board.new("beginner")
-     b.fill_grid
-     b.seed_mines
-end

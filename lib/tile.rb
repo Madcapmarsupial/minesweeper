@@ -1,5 +1,5 @@
 #require 'colorize'
-
+require 'byebug'
 class Tile
     attr_accessor :value, :bombed, :flagged, :revealed, :pos
     attr_reader :board
@@ -13,7 +13,15 @@ class Tile
         @revealed = false
     end
 
-    def get_list
+    def inspect
+        @value
+    end
+
+    def set_mine!
+        @bombed = true
+    end
+
+    def neighbor_pos_list
         y, x = @pos
         neighbors_list = []
         (y-1..y+1).each do |h|  
@@ -27,40 +35,60 @@ class Tile
         return neighbors_list
     end
 
-    def neighbor_tiles(list_of_neighbors)
+    def set_tiles(list_of_neighbors)
         list_of_neighbors.map! do |coords|
             h, w = coords
             @board[h][w]
         end
     end
 
-    
-    def reveal 
-       @value = self.neighbor_bomb_count
+    def get_neighbors
+        return set_tiles(neighbor_pos_list)
     end
 
     def neighbor_bomb_count
-        return "X" if bombed
-
-        list = self.get_list
-        neighbors = neighbor_tiles(list)
+        return "X" if @revealed && @bombed
+        return @value if bombed
+        
         bomb_count = 0
-        neighbors.each { |neighbor| bomb_count += 1 if neighbor.bombed }
+        tiles = self.get_neighbors
+        tiles.each { |tile| bomb_count += 1 if tile.bombed }
 
         if bomb_count == 0 
             return  "_"
-        else 
-            p bomb_count
+         else 
             return bomb_count.to_s
         end
     end 
 
-    def inspect
-        @value
+    def reveal  
+        return "THIS TILE IS FLAGGED "if @flagged 
+        return "boom" if @bombed
+        
+        @revealed = true 
+        @value = neighbor_bomb_count 
+        if @value == "_" 
+            get_neighbors.each do |tile| 
+               if tile.revealed == false && !flagged
+                    tile.reveal
+               end
+            end
+        else #if it is adjacent to a bomb
+            self.set_value
+        end         
     end
 
-    def set_mine!
-        @bombed = true
+    def flag
+        @flagged = !@flagged
+        if flagged == true
+            @value = "F"
+        end
     end
+
+    def set_value
+        @value = self.neighbor_bomb_count
+    end
+
+
 
 end
