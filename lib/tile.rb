@@ -62,9 +62,9 @@ class Tile
     end 
 
     def reveal  
-        return "THIS TILE IS FLAGGED "if @flagged 
+        return "F" if @flagged 
         return "boom" if @bombed
-        
+
         @revealed = true 
         @value = neighbor_bomb_count 
         if @value == "_" 
@@ -79,10 +79,16 @@ class Tile
     end
 
     def flag
-        @flagged = !@flagged
+      if revealed == false
+        @flagged = !flagged
         if flagged == true
             @value = "F"
+        else
+            @value = "*"
         end
+      else
+        return "already revealed"
+      end
     end
 
     def set_value

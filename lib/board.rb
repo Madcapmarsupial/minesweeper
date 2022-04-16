@@ -1,7 +1,7 @@
 require_relative 'tile.rb'
 
 class Board
-    attr_reader :height, :width, :mine_count
+    attr_reader :height, :width, :mine_count, :grid
 
     def self.make_empty_grid(height, width)
         grid = Array.new(height) { Array.new(width) }
@@ -20,7 +20,7 @@ class Board
         @mine_count = difficulty.last
         @grid = Board.make_empty_grid(height, width)
         self.fill_grid
-        p self.seed_mines
+        self.seed_mines
     end
     
     def [](index)
@@ -56,7 +56,6 @@ class Board
                 mines_placed += 1
             end
         end
-        p placed_positions
         "mines set!"
     end
 
