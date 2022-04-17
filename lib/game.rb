@@ -1,11 +1,49 @@
 require_relative 'board.rb'
-require "byebug"
 
 class Game
     attr_reader :board
 
-    def initialize(board)
-        @board = board
+    def self.get_custom_level
+        print "\n input the... height, width, and number of mines. \n all larger than 0 and seperated by commas -> '4,4,2'\n --> "
+        inputs = gets.chomp!.split(",")
+        inputs.map!(&:to_i)
+        pass = (
+            inputs.length == 3 &&
+            inputs.all? { |ele| ele.is_a?(Integer) && ele > 0 }
+        )
+
+        until pass
+            print "\n input error (#{inputs}), try again\n"
+            return Game.get_custom_level
+        end
+
+        return inputs
+    end
+
+    def self.start_up
+        difficulties = { 
+            "test" => [4,4, 2],
+            "beginner" => [9, 9, 10], 
+            "intermediate" => [16, 16, 10],
+            "expert" => [16, 30, 99], 
+            "custom" => "custom"
+       }
+      
+        print"\n type in a difficulty level: beginner, intermediate, expert, or custom\n ---> " 
+        level = gets.chomp
+        pass = difficulties.has_value?(level)
+        until pass
+            print "\n error \n"
+            return Game.start_up
+        end
+        
+        return Game.get_custom_level if level == "custom" 
+        return difficulties[level]
+    end
+  
+    def initialize
+        level = Game.start_up
+        @board = Board.new(level)
         @blow_up = false
     end
     
@@ -23,7 +61,6 @@ class Game
         return tiles.all? { |tile| tile.revealed }
     end
     
-
     def prompt_for_input
         print "\n SELECT A TILE\n input two numbers seperated by a comma ->  '2,3'
         the first between 0 and #{board.height-1} 
@@ -48,7 +85,6 @@ class Game
         end
         return input
     end
-
 
     def prompt_for_action
         print "\nPICK AN ACTION
@@ -102,7 +138,7 @@ class Game
         return false
     end
 
-    def run
+    def run_game
         render
         until game_over?
             input = get_input
@@ -114,12 +150,9 @@ class Game
             render
         end
     end
-    
 end
 
-
 if  __FILE__ == $PROGRAM_NAME
-    b = Board.new("test")
-    g = Game.new(b)
-    g.run
+    g = Game.new
+    g.run_game
 end
