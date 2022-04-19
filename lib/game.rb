@@ -7,12 +7,12 @@ class Game
         print "\n input the... height, width, and number of mines. \n all larger than 0 and seperated by commas -> '4,4,2'\n --> "
         inputs = gets.chomp!.split(",")
         inputs.map!(&:to_i)
-        pass = (
+        pass_test = (
             inputs.length == 3 &&
             inputs.all? { |ele| ele.is_a?(Integer) && ele > 0 }
         )
 
-        until pass
+        until pass_test
             print "\n input error (#{inputs}), try again\n"
             return Game.get_custom_level
         end
@@ -31,9 +31,9 @@ class Game
       
         print"\n type in a difficulty level: beginner, intermediate, expert, or custom\n ---> " 
         level = gets.chomp
-        pass = difficulties.has_value?(level)
+        pass = difficulties.has_key?(level)
         until pass
-            print "\n error \n"
+            print "\n error your input was -> (#{level})\n"
             return Game.start_up
         end
         
@@ -145,12 +145,13 @@ class Game
             print "\n selected tile #{input} \n"
             prompt_for_action
             action = get_action
-            #debugger
             execute(input, action)
             render
+          
         end
     end
 end
+
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
