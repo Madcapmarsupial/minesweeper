@@ -1,4 +1,5 @@
 require_relative 'board.rb'
+require 'yaml'
 
 class Game
     attr_reader :board
@@ -138,8 +139,13 @@ class Game
         return false
     end
 
-    def save_game
-        self
+    def save_game(file_name)
+        #"/saved_games/#{file_name}"
+        game_data = self.to_yaml
+        File.open("saved_games/#{file_name}", "w+") do |f| 
+            f.write(game_data)
+
+        end
     end
 
 
@@ -158,6 +164,6 @@ end
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
-    p g.save_game
+    p g.save_game("save_1.txt")
     g.run_game
 end
