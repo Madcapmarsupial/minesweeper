@@ -131,12 +131,22 @@ class Game
             Game Over\n"
             return true
         elsif win?
-            print "\nYOU WIN!\n"
+            print "\n YOU WIN! \n"
             return true
         end
 
         return false
     end
+
+    def save_game
+        x = true
+        while x == true 
+            print "hi"
+            print self
+             x = false
+        end
+    end
+
 
     def run_game
         render
@@ -153,5 +163,6 @@ end
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
+    g.save_game
     g.run_game
 end
