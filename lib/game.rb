@@ -31,7 +31,7 @@ class Game
       
         print"\n type in a difficulty level: beginner, intermediate, expert, or custom\n ---> " 
         level = gets.chomp
-        pass = difficulties.has_key(level)
+        pass = difficulties.has_key?(level)
         until pass
             print "\n error your input was (#{level})\n"
             return Game.start_up
@@ -131,7 +131,7 @@ class Game
             Game Over\n"
             return true
         elsif win?
-            print "\n YOU WIN! \n"
+            print "\nYOU WIN!\n"
             return true
         end
 
@@ -139,12 +139,7 @@ class Game
     end
 
     def save_game
-        x = true
-        while x == true 
-            print "hi"
-            print self
-             x = false
-        end
+        self
     end
 
 
@@ -163,6 +158,6 @@ end
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
-    g.save_game
+    p g.save_game
     g.run_game
 end
