@@ -1,4 +1,5 @@
 require_relative 'board.rb'
+require "byebug"
 require 'yaml'
 
 class Game
@@ -139,15 +140,21 @@ class Game
         return false
     end
 
-    def save_game(file_name)
+    def save_game
         #prompt
         file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
-        File.open("saved_games/#{file_name}", "w+") do |f| 
-            f.write(game_data)
-        end
+
+        File.open("saved_games/#{file_name}", "w+") { |f| f.write(game_data) }
     end
     
+    def load_game
+        #prompt
+        file_name = (gets.chomp + ".txt")
+        saved_game = File.read("saved_games/#{file_name}")
+
+        YAML::load(saved_game)
+    end
 
     def run_game
         render
@@ -164,6 +171,5 @@ end
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
-    p g.save_game("save_1.txt")
     g.run_game
 end
