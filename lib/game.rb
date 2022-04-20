@@ -140,14 +140,14 @@ class Game
     end
 
     def save_game(file_name)
-        #"/saved_games/#{file_name}"
+        #prompt
+        file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
         File.open("saved_games/#{file_name}", "w+") do |f| 
             f.write(game_data)
-
         end
     end
-
+    
 
     def run_game
         render
