@@ -141,7 +141,7 @@ class Game
     end
 
     def save_game
-        #prompt
+        print "\n please input the name of your game"
         file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
 
@@ -149,14 +149,14 @@ class Game
     end
     
     def load_game
-        #prompt
+        print "\n please input the name of your game"
         file_name = (gets.chomp + ".txt")
         saved_game = File.read("saved_games/#{file_name}")
 
         YAML::load(saved_game)
     end
 
-    def run_game
+    def run
         render
         until game_over?
             input = get_input
@@ -166,10 +166,14 @@ class Game
             execute(input, action)
             render
         end
+
+        
+
     end
+    
 end
 
 if  __FILE__ == $PROGRAM_NAME
     g = Game.new
-    g.run_game
+    g.run
 end
