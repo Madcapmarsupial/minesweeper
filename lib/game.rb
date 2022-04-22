@@ -1,4 +1,5 @@
 require_relative 'board.rb'
+require 'yaml'
 
 class Game
     attr_reader :board
@@ -21,26 +22,33 @@ class Game
     end
 
     def self.start_up
-        difficulties = { 
+        levels = { 
             "test" => [4,4, 2],
             "beginner" => [9, 9, 10], 
             "intermediate" => [16, 16, 10],
             "expert" => [16, 30, 99], 
             "custom" => "custom"
-       }
+        }.freeze
       
         print"\n type in a difficulty level: beginner, intermediate, expert, or custom\n ---> " 
         level = gets.chomp
-        pass = difficulties.has_key?(level)
+        pass = levels.has_key?(level)
         until pass
-            print "\n error your input was -> (#{level})\n"
+            print "\n error your input was (#{level})\n"
             return Game.start_up
         end
         
         return Game.get_custom_level if level == "custom" 
-        return difficulties[level]
+        return levels[level]
+
+
     end
   
+    def self.load_game(file_name)
+        saved_game = File.read("saved_games/#{file_name}")
+        YAML::load(saved_game)
+    end
+
     def initialize
         level = Game.start_up
         @board = Board.new(level)
@@ -51,16 +59,7 @@ class Game
         print "\n"
         board.grid.each { |row| p row }
     end
-
-    def win?
-        tiles = []
-        board.grid.each do |rows| 
-            tiles += rows.select { |tile| !tile.bombed }
-        end
-
-        return tiles.all? { |tile| tile.revealed }
-    end
-    
+   
     def prompt_for_input
         print "\n SELECT A TILE\n input two numbers seperated by a comma ->  '2,3'
         the first between 0 and #{board.height-1} 
@@ -90,11 +89,12 @@ class Game
         print "\nPICK AN ACTION
         'f' to Flag the tile (or unflag if already flagged)
         'r' to Reveal it.
-        'back' to select a new tile.\n"
+        'back' to select a new tile.
+        'save' to save your game.\n"
     end
 
     def get_action
-        valid_actions = ['r', 'f', 'back']
+        valid_actions = ['r', 'f', 'back', 'save']
         print "---->  "
         action = gets.chomp
         if valid_actions.include?(action)
@@ -119,11 +119,22 @@ class Game
             print reveal_msg if board[h][w].revealed
         when "back"
             return nil
+        when "save"
+            self.save_game
         else 
             raise "Something went wrong. is your input -> '#{input}' and action -> '#{action}' in the correct format?"
         end
     end
 
+    def win?
+        tiles = []
+        board.grid.each do |rows| 
+            tiles += rows.select { |tile| !tile.bombed }
+        end
+
+        return tiles.all? { |tile| tile.revealed }
+    end
+    
     def game_over?
         if @blow_up
             print "\n
@@ -138,7 +149,16 @@ class Game
         return false
     end
 
-    def run_game
+    def save_game
+        print "\n please input the name of your game\n --->"
+        file_name = (gets.chomp + ".txt")
+        game_data = self.to_yaml
+
+        File.open("saved_games/#{file_name}", "w+") { |f| f.write(game_data) }
+    end
+    
+    def run
+
         render
         until game_over?
             input = get_input
@@ -149,11 +169,20 @@ class Game
             render
           
         end
+
+        
+
     end
 end
 
 
 if  __FILE__ == $PROGRAM_NAME
-    g = Game.new
-    g.run_game
+  case ARGV.length
+    when 0
+        g = Game.new
+        g.run
+    when 1 
+        game_file = ARGV.shift
+        Game.load_game(game_file).run
+    end 
 end
