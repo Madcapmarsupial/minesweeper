@@ -1,10 +1,7 @@
 require_relative 'board.rb'
 require 'yaml'
 require 'colorize'
-require "byebug"
-#  .colorize(:color => :light_blue, :background => :red)
-#  "This is red on blue and underline".colorize(:red).on_blue.underline
-#  puts "This is blue text on red".blue.on_red.blink
+require "remedy"
 
 class Game
     attr_reader :board
@@ -60,12 +57,16 @@ class Game
         @blow_up = false
     end
     
-    def render 
+    def render(pos) 
         print "\n".ljust(3).on_white
 
-        board.grid.each do |row| 
+        board.grid.each_with_index do |row, i| 
 
-            row.each do |tile|
+            row.each_with_index do |tile, j|
+                if pos == [i, j]
+                    print tile.value.ljust(3).yellow.on_blue
+                    next
+                end
                 val = tile.value
                 case val
                 when "F"
@@ -75,7 +76,7 @@ class Game
                 when "_"
                     print val.ljust(3).light_white.on_white
                 when "1".."2"
-                    print tile.value.ljust(3).green.on_white
+                    print val.ljust(3).green.on_white
                 when "3".."5"
                     print val.ljust(3).red.on_white
                 when "6".."8"
@@ -142,7 +143,6 @@ class Game
             flag_msg = "\nthis tile is flagged. to reveal it. the tile must be unflagged first\n" 
             print flag_msg.red if board[h][w].value == "F"
             @blow_up = true if board[h][w].bombed
-            #we can render mines here on blow up
         when "f"
             board[h][w].flag
             reveal_msg = "\nthis tile is already revealed.\n"
@@ -193,14 +193,66 @@ class Game
         system("clear")
         until game_over?
             render
-            input = get_input
-            print "\n selected tile #{input} \n"
-            prompt_for_action
+            #input = get_input
+            #print "\n selected tile #{input} \n"
+            #prompt_for_action
             action = get_action
-            execute(input, action)
+            #execute(input, action)
             system('clear')
         end
     end
+
+
+    include Remedy
+    
+    def keyboard
+        user_input = Interaction.new
+
+        w = (board.grid[0].length / 2)
+        h = (board.grid.length / 2)
+
+
+        user_input.loop do |key|
+            #current_tile = board.grid[h][w]
+
+            case key.to_s
+            when "up"
+                 #decrement h
+                 h -= 1
+            when "down"
+                 #increment h
+                 h += 1
+            when "left"
+                 #decrement w
+                 w -= 1
+            when "right"
+                 #increment w
+                 w += 1
+            when "space"
+                #reveal
+                #wrap h and w by hiegit and width with  h % (height + 1) or length
+                
+                self.execute([h, w], "r")
+            when "control_s"
+                #save
+            when "f"
+                #flag
+                #wrap h and w by hiegit and width with %
+                self.execute([h, w], "f")
+
+            end 
+            system('clear')
+
+            h = (h % board.grid.length)
+            w = (w % board.grid[0].length)
+            selected_tile = board.grid[h][w]
+            render([h,w])
+
+           #blink selected tile
+        end
+    end
+
+
 end
 
 
@@ -210,6 +262,8 @@ if  __FILE__ == $PROGRAM_NAME
   case ARGV.length
     when 0
         g = Game.new
+        g.keyboard
+
         g.run
     when 1 
         game_file = ARGV.shift
