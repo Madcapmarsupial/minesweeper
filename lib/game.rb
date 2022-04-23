@@ -70,8 +70,6 @@ class Game
                 case val
                 when "F"
                     print val.ljust(3).black.on_red
-                when "X"    
-                    print val.ljust(3).black.on_white
                 when "*"
                     print val.ljust(3).black.on_white
                 when "_"
@@ -82,12 +80,15 @@ class Game
                     print val.ljust(3).red.on_white
                 when "6".."8"
                     print val.ljust(3).blue.on_white
+                when "X"
+                    print val.ljust(3).black.on_red
                 end
             end
             print "\n".ljust(3).on_white
         end
     end
-   
+
+
     def prompt_for_input
         print "\n SELECT A TILE\n input two numbers seperated by a comma ->  '2,3'
         the first between 0 and #{board.height-1} 
@@ -166,6 +167,8 @@ class Game
     
     def game_over?
         if @blow_up
+            board.grid.each { |rows| rows.each { |tile| tile.value = "X" if tile.bombed } }
+            render
             print "\n
             BOOM!  
             Game Over\n".red
@@ -187,15 +190,15 @@ class Game
     end
     
     def run
-        render
+        system("clear")
         until game_over?
+            render
             input = get_input
             print "\n selected tile #{input} \n"
             prompt_for_action
             action = get_action
             execute(input, action)
-            render
-          
+            system('clear')
         end
     end
 end
