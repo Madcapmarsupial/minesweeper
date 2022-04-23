@@ -1,5 +1,4 @@
-#require 'colorize'
-require 'byebug'
+require 'colorize'
 class Tile
     attr_accessor :value, :bombed, :flagged, :revealed, :pos
     attr_reader :board
@@ -47,8 +46,8 @@ class Tile
     end
 
     def neighbor_bomb_count
-        return "X" if @revealed && @bombed
-        return @value if bombed
+        return "X" if @revealed && @bombed #I think this is redundent
+        return @value if bombed 
         
         bomb_count = 0
         tiles = self.get_neighbors
@@ -63,10 +62,10 @@ class Tile
 
     def reveal  
         return "F" if @flagged 
-        return "boom" if @bombed
+        return "X" if @bombed
 
         @revealed = true 
-        @value = neighbor_bomb_count 
+        @value = self.neighbor_bomb_count 
         if @value == "_" 
             get_neighbors.each do |tile| 
                if tile.revealed == false && !flagged

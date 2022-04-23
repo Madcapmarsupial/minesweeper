@@ -1,5 +1,10 @@
 require_relative 'board.rb'
 require 'yaml'
+require 'colorize'
+require "byebug"
+#  .colorize(:color => :light_blue, :background => :red)
+#  "This is red on blue and underline".colorize(:red).on_blue.underline
+#  puts "This is blue text on red".blue.on_red.blink
 
 class Game
     attr_reader :board
@@ -56,8 +61,31 @@ class Game
     end
     
     def render 
-        print "\n"
-        board.grid.each { |row| p row }
+        print "\n".ljust(3).on_white
+
+        board.grid.each do |row| 
+
+            row.each do |tile|
+                val = tile.value
+                case val
+                when "F"
+                    print val.ljust(3).black.on_red
+                when "X"    
+                    print val.ljust(3).black.on_white
+                when "*"
+                    print val.ljust(3).black.on_white
+                when "_"
+                    print val.ljust(3).light_white.on_white
+                when "1".."2"
+                    print tile.value.ljust(3).green.on_white
+                when "3".."5"
+                    print val.ljust(3).red.on_white
+                when "6".."8"
+                    print val.ljust(3).blue.on_white
+                end
+            end
+            print "\n".ljust(3).on_white
+        end
     end
    
     def prompt_for_input
@@ -100,7 +128,7 @@ class Game
         if valid_actions.include?(action)
             return action
         end
-        p "try again, valid actions are #{valid_actions}"
+        p "try again, valid actions are" + "#{valid_actions}".red
         prompt_for_action
         return get_action
     end
@@ -111,12 +139,13 @@ class Game
         when "r"
             board[h][w].reveal
             flag_msg = "\nthis tile is flagged. to reveal it. the tile must be unflagged first\n" 
-            print flag_msg if board[h][w].value == "F"
+            print flag_msg.red if board[h][w].value == "F"
             @blow_up = true if board[h][w].bombed
+            #we can render mines here on blow up
         when "f"
             board[h][w].flag
             reveal_msg = "\nthis tile is already revealed.\n"
-            print reveal_msg if board[h][w].revealed
+            print reveal_msg.blue if board[h][w].revealed
         when "back"
             return nil
         when "save"
@@ -139,10 +168,10 @@ class Game
         if @blow_up
             print "\n
             BOOM!  
-            Game Over\n"
+            Game Over\n".red
             return true
         elsif win?
-            print "\nYOU WIN!\n"
+            print "\nYOU WIN!\n".green
             return true
         end
 
@@ -158,7 +187,6 @@ class Game
     end
     
     def run
-
         render
         until game_over?
             input = get_input
@@ -169,14 +197,13 @@ class Game
             render
           
         end
-
-        
-
     end
 end
 
 
 if  __FILE__ == $PROGRAM_NAME
+   
+
   case ARGV.length
     when 0
         g = Game.new

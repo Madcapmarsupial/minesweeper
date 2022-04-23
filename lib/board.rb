@@ -8,14 +8,6 @@ class Board
     end
 
     def initialize(difficulty)
-        # difficulties = { 
-        #     "test" => [4,4, 2],
-        #     "beginner" => [9, 9, 10], 
-        #     "intermediate" => [16, 16, 10],
-        #     "expert" => [16, 30, 99] 
-            
-        # }
-        #difficulty = difficulties[level]
         @height = difficulty[0]
         @width = difficulty[1]
         @mine_count = difficulty.last
