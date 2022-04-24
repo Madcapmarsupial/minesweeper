@@ -32,7 +32,7 @@ class Game
             "custom" => "custom"
         }.freeze
       
-        print"\n type in a difficulty level:\n beginner, intermediate, expert, or custom.\n ---> " 
+        print"\n type in a difficulty level to start!\n levels: beginner, intermediate, expert, or custom.\n ---> " 
         level = gets.chomp
         pass = levels.has_key?(level)
         until pass
@@ -182,11 +182,11 @@ class Game
 
 end
 
-
 if  __FILE__ == $PROGRAM_NAME
     system('clear')
-    print "WELCOME TO MINESWEEPER!"
-
+    print "WELCOME TO MINESWEEPER\n"
+    print "\nTo load a game. \n1. exit. 2. type in the game's name next to the program before running\n"
+    
     case ARGV.length
     when 0
         g = Game.new
