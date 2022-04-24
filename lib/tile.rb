@@ -62,7 +62,7 @@ class Tile
 
     def reveal  
         return "F" if @flagged 
-        return "X" if @bombed
+        #return "X" if @bombed
 
         @revealed = true 
         @value = self.neighbor_bomb_count 
