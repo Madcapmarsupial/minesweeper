@@ -46,9 +46,9 @@ class Tile
     end
 
     def neighbor_bomb_count
-        return "X" if @revealed && @bombed #I think this is redundent
+        return "X" if @revealed && @bombed 
         return @value if bombed 
-        
+    
         bomb_count = 0
         tiles = self.get_neighbors
         tiles.each { |tile| bomb_count += 1 if tile.bombed }
@@ -61,16 +61,13 @@ class Tile
     end 
 
     def reveal  
-        return "F" if @flagged 
-        #return "X" if @bombed
-
+        return nil if @flagged 
+        
         @revealed = true 
         @value = self.neighbor_bomb_count 
         if @value == "_" 
             get_neighbors.each do |tile| 
-               if tile.revealed == false && !flagged
-                    tile.reveal
-               end
+                tile.reveal if (tile.revealed == false && !flagged)
             end
         else #if it is adjacent to a bomb
             self.set_value
@@ -85,9 +82,7 @@ class Tile
         else
             @value = "*"
         end
-      else
-        return "already revealed"
-      end
+       end
     end
 
     def set_value

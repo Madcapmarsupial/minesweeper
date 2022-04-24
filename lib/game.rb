@@ -16,14 +16,14 @@ class Game
         )
 
         until pass_test
-            print "\n input error (#{inputs}), try again\n"
+            print "\n error. your input was --> (#{inputs})... try again\n".red
             return Game.get_custom_level
         end
 
         return inputs
     end
 
-    def self.start_up
+    def self.new_game
         levels = { 
             "test" => [4,4, 2],
             "beginner" => [9, 9, 10], 
@@ -32,18 +32,16 @@ class Game
             "custom" => "custom"
         }.freeze
       
-        print"\n type in a difficulty level: beginner, intermediate, expert, or custom\n ---> " 
+        print"\n type in a difficulty level:\n beginner, intermediate, expert, or custom.\n ---> " 
         level = gets.chomp
         pass = levels.has_key?(level)
         until pass
-            print "\n error your input was (#{level})\n"
-            return Game.start_up
+            print "\n error your input was (#{level})\n".red
+            return Game.new_game
         end
         
         return Game.get_custom_level if level == "custom" 
         return levels[level]
-
-
     end
   
     def self.load_game(file_name)
@@ -52,7 +50,7 @@ class Game
     end
 
     def initialize
-        level = Game.start_up
+        level = Game.new_game
         @board = Board.new(level)
         @blow_up = false
     end
@@ -62,11 +60,12 @@ class Game
     end
 
     def render(pos) 
+        pos = wrap(pos)
         print "\n".ljust(3).on_white
         board.grid.each_with_index do |row, i| 
             row.each_with_index do |tile, j|
                 if pos == [i, j]
-                    print tile.value.ljust(3).yellow.on_blue
+                    print tile.value.ljust(3).yellow.on_light_blue
                     next
                 end
                 val = tile.value
@@ -91,25 +90,32 @@ class Game
         end
     end
     
+    def wrap(input)
+        #input should be a 2d array of the form [height, width]
+        h = (input.first % board.grid.length)
+        w = (input.last % board.grid[0].length)
+        return [h, w]
+    end
+
     def execute(input, action)
-        h, w = input
+        h, w = wrap(input)
+        tile = board[h][w]
         case action
         when "r"
-            board[h][w].reveal
-            if board[h][w].value == "F"
-                flag_msg = "\nthis tile is flagged. to reveal it. the tile must be unflagged first\n" 
-                print flag_msg.red
-                sleep(3)
+            if tile.value == "F"
+                flag_msg = "\nthis tile is flagged. to reveal it the tile must be unflagged first\n" 
+                print flag_msg.blue
+                sleep(2)
+            else
+                tile.reveal 
+                @blow_up = true if tile.bombed
             end
-            @blow_up = true if board[h][w].bombed
         when "f"
-            board[h][w].flag
-             if board[h][w].revealed
+            tile.flag
+            if tile.revealed
                 print "\nthis tile is already revealed.\n".blue
-                sleep(3)
-             end
-        when "save"
-            self.save_game
+                sleep(2)
+            end
         end
     end
 
@@ -118,7 +124,6 @@ class Game
         board.grid.each do |rows| 
             tiles += rows.select { |tile| !tile.bombed }
         end
-
         return tiles.all? { |tile| tile.revealed }
     end
     
@@ -145,60 +150,47 @@ class Game
     end
     
     include Remedy
-    
-    def keyboard
+    def run
+        system('clear')
         user_input = Interaction.new
-        w = (board.grid[0].length / 2)
         h = (board.grid.length / 2)
+        w = (board.grid[0].length / 2)
+        render([h,w])
         user_input.loop do |key|
-            #current_tile = board.grid[h][w]
             case key.to_s
             when "up"
-                 #decrement h
                  h -= 1
             when "down"
-                 #increment h
                  h += 1
             when "left"
-                 #decrement w
                  w -= 1
             when "right"
-                 #increment w
                  w += 1
             when "space"
                 self.execute([h, w], "r")
             when "control_s"
-                #save
+                self.save_game
             when "f"
-                #flag
-                #wrap h and w by hiegit and width with %
                 self.execute([h, w], "f")
-
             end
-
             system('clear')
             reveal_mines if @blow_up
-            h = (h % board.grid.length)
-            w = (w % board.grid[0].length)
-            selected_tile = [h, w]
-            render(selected_tile)
+            render([h, w])
             break if game_over?
-            
-
         end
     end
-
 
 end
 
 
 if  __FILE__ == $PROGRAM_NAME
-   
+    system('clear')
+    print "WELCOME TO MINESWEEPER!"
 
-  case ARGV.length
+    case ARGV.length
     when 0
         g = Game.new
-        g.keyboard
+        g.run
     when 1 
         game_file = ARGV.shift
         Game.load_game(game_file).run
