@@ -53,6 +53,8 @@ class Game
         level = Game.new_game
         @board = Board.new(level)
         @blow_up = false
+        @duration = 0.0
+        @start_time = nil
     end
     
     def reveal_mines 
@@ -129,25 +131,34 @@ class Game
     
     def game_over?
         if @blow_up
-            print "\n
+            @duration += (Time.now - @start_time)
+            print "\n#{get_time}\n
             BOOM!  
             Game Over\n".red
             return true
         elsif win?
-            print "\nYOU WIN!\n".green
+            @duration += (Time.now - @start_time)
+            print "\n#{get_time}\nYOU WIN!\n".green
             return true
         end
 
         return false
     end
 
-    def save_game
+    def save_game 
+        @duration += (Time.now() - @start_time)
+        #next start time
+        #saving and then continuing is still broken
         print "\n please input the name of your game\n --->"
         file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
 
         File.open("saved_games/#{file_name}", "w+") { |f| f.write(game_data) }
     end
+
+    def get_time
+        [@duration ]
+    end 
     
     include Remedy
     def run
@@ -155,6 +166,7 @@ class Game
         user_input = Interaction.new
         h = (board.grid.length / 2)
         w = (board.grid[0].length / 2)
+        @start_time = Time.now
         render([h,w])
         user_input.loop do |key|
             case key.to_s
@@ -176,6 +188,7 @@ class Game
             system('clear')
             reveal_mines if @blow_up
             render([h, w])
+            
             break if game_over?
         end
     end
@@ -191,8 +204,11 @@ if  __FILE__ == $PROGRAM_NAME
     when 0
         g = Game.new
         g.run
+        g.get_time
     when 1 
         game_file = ARGV.shift
-        Game.load_game(game_file).run
+        g = Game.load_game(game_file)
+        g.run
+        g.get_time
     end 
 end
