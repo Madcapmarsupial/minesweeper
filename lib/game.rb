@@ -3,6 +3,11 @@ require 'yaml'
 require 'colorize'
 require "remedy"
 
+
+#save method doesnt stop time while inputing a name for the game
+#time output string is in total seconds
+
+
 class Game
     attr_reader :board
 
@@ -51,6 +56,7 @@ class Game
 
     def initialize
         level = Game.new_game
+        @leader_board = File.read("leaderboard.txt")
         @board = Board.new(level)
         @blow_up = false
         @duration = 0.0
@@ -132,13 +138,14 @@ class Game
     def game_over?
         if @blow_up
             @duration += (Time.now - @start_time)
-            print "\n#{get_time}\n
-            BOOM!  
-            Game Over\n".red
+            print "\n   BOOM!\nGame Over\n".red
             return true
         elsif win?
             @duration += (Time.now - @start_time)
             print "\n#{get_time}\nYOU WIN!\n".green
+            #check leader board
+            #save to leader board
+            #display leader board
             return true
         end
 
@@ -147,19 +154,29 @@ class Game
 
     def save_game 
         @duration += (Time.now() - @start_time)
-        #next start time
-        #saving and then continuing is still broken
         print "\n please input the name of your game\n --->"
         file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
 
         File.open("saved_games/#{file_name}", "w+") { |f| f.write(game_data) }
+        #game continues to run so we restart the timer
+        @start_time = Time.now
     end
 
     def get_time
-        [@duration ]
+        to_time(@duration)
     end 
     
+    def to_time(duration)
+        total = duration.to_int
+        hours = total / 3600
+        total = total.remainder(3600)
+        mins = total / 60
+        total = total.remainder(60)
+        secs = total % 60
+        [hours, mins, secs].join(":")
+    end
+
     include Remedy
     def run
         system('clear')
