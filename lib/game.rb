@@ -2,6 +2,7 @@ require_relative 'board.rb'
 require 'yaml'
 require 'colorize'
 require "remedy"
+require "byebug"
 
 
 #save method doesnt stop time while inputing a name for the game
@@ -55,11 +56,10 @@ class Game
     end
 
     def initialize
-        level = Game.new_game
-        @leader_board = File.read("leaderboard.txt")
+        level = Game.new_game 
         @board = Board.new(level)
         @blow_up = false
-        @duration = 0.0
+        @duration = 0.00
         @start_time = nil
     end
     
@@ -134,39 +134,17 @@ class Game
         end
         return tiles.all? { |tile| tile.revealed }
     end
-    
-    def game_over?
-        if @blow_up
-            @duration += (Time.now - @start_time)
-            print "\n   BOOM!\nGame Over\n".red
-            return true
-        elsif win?
-            @duration += (Time.now - @start_time)
-            print "\n#{get_time}\nYOU WIN!\n".green
-            #check leader board
-            #save to leader board
-            #display leader board
-            return true
-        end
-
-        return false
-    end
-
+  
     def save_game 
-        @duration += (Time.now() - @start_time)
+        @duration += (Time.now.to_i - @start_time)
         print "\n please input the name of your game\n --->"
         file_name = (gets.chomp + ".txt")
         game_data = self.to_yaml
-
         File.open("saved_games/#{file_name}", "w+") { |f| f.write(game_data) }
         #game continues to run so we restart the timer
-        @start_time = Time.now
+        @start_time = Time.now.to_i
     end
-
-    def get_time
-        to_time(@duration)
-    end 
-    
+   
     def to_time(duration)
         total = duration.to_int
         hours = total / 3600
@@ -183,7 +161,7 @@ class Game
         user_input = Interaction.new
         h = (board.grid.length / 2)
         w = (board.grid[0].length / 2)
-        @start_time = Time.now
+        @start_time = Time.now.to_i
         render([h,w])
         user_input.loop do |key|
             case key.to_s
@@ -210,7 +188,90 @@ class Game
         end
     end
 
+    def get_leader_boards
+        leader_board_data = File.read("leaderboard.txt")
+        board_ranks = YAML::load(leader_board_data)
+    end
+
+    def update_ranks(board_ranks)
+        key = "#{@board.height}x#{@board.width}"
+        top_ten = board_ranks.fetch(key)
+        top_ten.each_with_index do |rank, i|
+            time = rank[1]
+            if time > @duration 
+                name = gets.chomp!
+                new_rank = [name, @duration]
+                top_ten
+                    .insert(i, new_rank)
+                    .pop
+                return board_ranks
+            end
+        end
+    end
+
+    def save_leader_boards(board_ranks)
+        leader_data = board_ranks.to_yaml
+        File.open("leaderboard.txt", "w+") { |f| f.write(leader_data) }
+    end
+
+    def game_over?
+        if @blow_up
+            print "\n   BOOM!\nGame Over\n".red
+            return true
+        elsif win?
+            @duration += (Time.now.to_i - @start_time)
+            time = to_time(@duration)   
+            print "\n#{time}\nYOU WIN!\n".green
+
+
+            preset_levels = ["4x4", 2], ["9x9", 10], ["16x16", 10], ["16x30", 99]
+            game_values = ["#{@board.height}x#{@board.width}", @board.mine_count]
+
+            if preset_levels.include?(game_values)
+                leaderboards = get_leader_boards
+                rankings = update_ranks(leaderboards)
+                boards_display(rankings)
+                save_leader_boards(rankings)
+            end
+            return true
+        end
+        return false
+    end
+
+
+    def boards_display(rankings)
+        #2 10 10 99
+        #hash -> key -> array of arrays
+        rankings.each_pair do  |game_size, games|
+            print "\n------ #{game_size} games ------ \n      Mine Count #{@board.mine_count}\n"
+
+            games.each_with_index do  |game_values, i|
+                rank = i + 1
+                player = game_values.first 
+                time = game_values.last
+                print "\n ##{rank} -- #{player} -- Time #{time}"
+            end
+            print "\n"
+        end
+
+    end
+
+
+
+
+
+
+
+
 end
+
+
+
+
+
+
+
+
 
 if  __FILE__ == $PROGRAM_NAME
     system('clear')
@@ -221,11 +282,9 @@ if  __FILE__ == $PROGRAM_NAME
     when 0
         g = Game.new
         g.run
-        g.get_time
     when 1 
         game_file = ARGV.shift
         g = Game.load_game(game_file)
         g.run
-        g.get_time
     end 
 end
